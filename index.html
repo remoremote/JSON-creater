@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirect Button</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 50px;
+        }
+
+        .button {
+            display: inline-block;
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 20px 40px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 20px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to Our Page!</h1>
+    <p>Click the button below to access details.json:</p>
+    <button class="button" onclick="redirectToDetailsJson()">Access details.json</button>
+
+    <script>
+        function redirectToDetailsJson() {
+            window.location.href = 'https://json-cerater.netlify.app/details.json';
+        }
+    </script>
+</body>
+</html>
