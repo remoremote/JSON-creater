@@ -32,9 +32,17 @@
     <p>Click the button below to access details.json:</p>
     <button class="button" onclick="redirectToDetailsJson()">Access details.json</button>
 
+    <p>Click the button below to access cronjob.log:</p>
+    <button class="button" onclick="redirectToCronjobLog()">Access cronjob.log</button>
+
     <script>
         function redirectToDetailsJson() {
             window.location.href = 'https://json-cerater.netlify.app/details.json';
+        }
+
+        function redirectToCronjobLog() {
+            window.location.href = 'path_to_your_cronjob_log/cronjob.log';
+            // Update 'path_to_your_cronjob_log' with the correct path to your cronjob.log file
         }
     </script>
 </body>
