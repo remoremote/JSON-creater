@@ -3,10 +3,11 @@ const cheerio = require('cheerio');
 const fs = require('fs');
 const TurndownService = require('turndown');
 const turndownService = new TurndownService();
+const mySecret = process.env['googleAPIKey']
 
 const baseUrl = 'https://casaframe.ch';
 const overviewPath = '/de/publisher/S1eULf6tOHWAIeKpRsca2ozbdZJuhj3A/';
-const maxPageNumber = 1; // Assuming the last page is 8 as per your input
+const maxPageNumber = 8; // Assuming the last page is 8 as per your input
 
 async function fetchHTML(url) {
     try {
@@ -57,20 +58,34 @@ async function scrapePage(link) {
                 details.dateRent = value; // Changing key name
                 break;
             case 'Etage':
-                details.stockwerk = parseInt(value); // Changing key name and parsing value to number
+                details.stockwerk = parseInt(value) || 0; // Changing key name and parsing value to number
                 break;
             case 'Nettomiete':
-                const nettoMiete = value.match(/\d+/); // Extracting numbers from the string
-                details.price = nettoMiete ? parseInt(nettoMiete[0]) : null; // Changing key name and parsing value to number
+                details.price = parsePrice(value); // Changing key name and parsing value to number
+                break;
+            case 'Bruttomiete':
+                details.monthlyPrice = parsePrice(value); // Changing key name and parsing value to number
                 break;
             case 'Nutzfläche':
-                details.totalArea = parseInt(value.match(/\d+/)[0]); // Changing key name and parsing value to number
+                details.totalArea = parseArea(value); // Changing key name and parsing value to number
+                break;
+            case 'Raumhöhe':
+            case 'Mietkaution':
+                // Ignore these keys
+                break;
+            case 'Kategorie':
+                details.spaceType = parseSpaceType(value); // Changing key name
                 break;
             default:
                 details[key] = value;
                 break;
         }
     });
+
+    // If price, Nettomiete, or Bruttomiete keys don't exist, set price to 0
+    if (!details.price && !details.monthlyPrice) {
+        details.price = 0;
+    }
 
     // Scrape images
     const imageCount = $(".image-count.slider-label").text().trim();
@@ -107,7 +122,7 @@ async function getAddressFromGoogleMaps(addressLink) {
         if (latLngMatch && latLngMatch.length === 3) {
             const latitude = latLngMatch[1];
             const longitude = latLngMatch[2];
-            const reverseGeocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${googleAPIKey}`;
+            const reverseGeocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyDlnZqM9x22u-w_DA9i43E9VzY6Alziyr4`;
             const reverseGeocodeResponse = await axios.get(reverseGeocodeUrl);
             console.log('Reverse Geocoding Response:', reverseGeocodeResponse.data); // Log the response
             const { results } = reverseGeocodeResponse.data;
@@ -158,6 +173,41 @@ async function scrapeOverviewPage(pageNumber) {
     });
 
     return links;
+}
+
+async function saveToJson(data, filename) {
+    try {
+        fs.writeFileSync(filename, JSON.stringify(data, null, 2));
+        console.log(`Data saved to ${filename}`);
+    } catch (error) {
+        console.error('Error saving data to JSON file:', error);
+    }
+}
+
+function parsePrice(value) {
+    const match = value.match(/(\d+)’?(\d*)/); // Adjusted regex to capture numbers with or without the character "’"
+    return match ? parseInt(match[1] + match[2]) : 0;
+}
+
+function parseArea(value) {
+    const match = value.match(/(\d+)’?(\d*)/); // Adjusted regex to capture numbers with or without the character "’"
+    return match ? parseInt(match[1] + match[2]) : 0;
+}
+
+
+function parseSpaceType(value) {
+    switch (value) {
+        case 'Einzelhandel':
+            return 'Commercial Space';
+        case 'Büro':
+            return 'Office Space';
+        case 'Ladenfläche':
+            return 'Retail Space';
+        case 'Lager':
+            return 'Commercial Space';
+        default:
+            return value;
+    }
 }
 
 async function main() {
