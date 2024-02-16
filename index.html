@@ -32,8 +32,9 @@
     <p>Click the button below to access details.json:</p>
     <button class="button" onclick="redirectToDetailsJson()">Access details.json</button>
 
-    <p>Click the button below to access cronjob.log:</p>
-    <button class="button" onclick="redirectToCronjobLog()">Access cronjob.log</button>
+    <p>Click the button below to view cronjob.log:</p>
+    <button class="button" onclick="redirectToCronjobLog()">View cronjob.log</button>
+    <div id="log-content"></div>
 
     <script>
         function redirectToDetailsJson() {
@@ -41,8 +42,14 @@
         }
 
         function redirectToCronjobLog() {
-            window.location.href = 'path_to_your_cronjob_log/cronjob.log';
-            // Update 'path_to_your_cronjob_log' with the correct path to your cronjob.log file
+            fetch('/cronjob-log')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('log-content').innerText = data;
+            })
+            .catch(error => {
+                console.error('Error fetching log content:', error);
+            });
         }
     </script>
 </body>

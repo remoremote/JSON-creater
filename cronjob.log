@@ -1,0 +1,35 @@
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+
+// Create a simple HTTP server
+const server = http.createServer((req, res) => {
+    // Handle requests for the cronjob.log file
+    if (req.url === '/cronjob-log') {
+        const logFilePath = path.join(__dirname, 'cronjob.log');
+
+        // Read the content of cronjob.log file
+        fs.readFile(logFilePath, 'utf8', (err, data) => {
+            if (err) {
+                res.writeHead(500, {'Content-Type': 'text/plain'});
+                res.end('Error reading log file');
+                return;
+            }
+
+            res.writeHead(200, {'Content-Type': 'text/plain'});
+            res.end(data);
+        });
+    } else {
+        // Handle other requests
+        res.writeHead(404, {'Content-Type': 'text/plain'});
+        res.end('Not Found');
+    }
+});
+
+// Define the port number to listen on
+const port = 3000;
+
+// Start the server
+server.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
+});
