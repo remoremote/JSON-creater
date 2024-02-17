@@ -42,7 +42,7 @@
         }
 
         function redirectToCronjobLog() {
-            fetch('/cronjob-log')
+            fetch('/.netlify/functions/fetch-cron-log')
             .then(response => response.text())
             .then(data => {
                 document.getElementById('log-content').innerText = data;
