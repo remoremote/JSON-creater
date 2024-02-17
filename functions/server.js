@@ -13,7 +13,7 @@ app.get('/cronjob-log', (req, res) => {
       const lines = data.trim().split('\n');
       const latestLogs = lines.slice(-10);
       const formattedLogs = latestLogs.join('\n');
-      res.send(formattedLogs);
+      res.send(formattedLogs); // Send the log content as plain text
     }
   });
 });

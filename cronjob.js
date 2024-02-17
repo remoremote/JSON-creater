@@ -3,7 +3,7 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 
 // Define the cron job schedule to run at 3am CET every day
-const cronJob = '38 15 * * *'; // Adjust according to your requirements
+const cronJob = '*/10 * * * *'; // Adjust according to your requirements
 
 // Command to run your Node.js script
 const command = 'node';
