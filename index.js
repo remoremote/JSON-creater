@@ -7,7 +7,7 @@ const mySecret = process.env["googleAPIKey"];
 
 const baseUrl = "https://casaframe.ch";
 const overviewPath = "/de/publisher/S1eULf6tOHWAIeKpRsca2ozbdZJuhj3A/";
-const maxPageNumber = 8; // Assuming the last page is 8 as per your input
+const maxPageNumber = 1; // Assuming the last page is 8 as per your input
 
 async function fetchHTML(url) {
   try {
