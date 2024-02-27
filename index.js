@@ -3,26 +3,26 @@ const cheerio = require("cheerio");
 const fs = require("fs");
 const TurndownService = require("turndown");
 const turndownService = new TurndownService();
-const mySecret = process.env["googleAPIKey"];
-
+const mySecret = process.env["googleAPIKey"]; // Make sure to have this variable in your environment
 const baseUrl = "https://casaframe.ch";
 const overviewPath = "/de/publisher/S1eULf6tOHWAIeKpRsca2ozbdZJuhj3A/";
-const maxPageNumber = 1; // Assuming the last page is 8 as per your input
-
+const maxPageNumber = 1; // Set this to your required value
 async function fetchHTML(url) {
+  console.log(`Fetching HTML for URL: ${url}`);
   try {
     const { data } = await axios.get(url);
+    console.log(`Successfully fetched HTML for URL: ${url}`);
     return cheerio.load(data);
   } catch (error) {
     console.error(`Error fetching the HTML for URL: ${url}`, error);
     return null;
   }
 }
-
 async function scrapePage(link) {
   const $ = await fetchHTML(link);
   if (!$) return null;
 
+  
   const details = {};
 
   // Scrape address details
@@ -214,6 +214,7 @@ function parseSpaceType(value) {
 }
 
 async function main() {
+  console.log("Starting main scraping function...");
   let allDetails = [];
 
   for (let i = 1; i <= maxPageNumber; i++) {
@@ -255,6 +256,7 @@ async function main() {
     if (err) throw err;
     console.log('CSV file has been saved.');
   });
+  console.log("Main function completed.");
 }
 
 main();
