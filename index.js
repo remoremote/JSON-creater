@@ -126,7 +126,7 @@ async function getAddressFromGoogleMaps(addressLink) {
     if (latLngMatch && latLngMatch.length === 3) {
       const latitude = latLngMatch[1];
       const longitude = latLngMatch[2];
-      const reverseGeocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${googleAPIKey}`;
+      const reverseGeocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${mySecret}`;
       const reverseGeocodeResponse = await axios.get(reverseGeocodeUrl);
       console.log("Reverse Geocoding Response:", reverseGeocodeResponse.data); // Log the response
       const { results } = reverseGeocodeResponse.data;

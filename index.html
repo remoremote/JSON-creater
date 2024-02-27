@@ -27,30 +27,37 @@
         }
     </style>
 </head>
-<body>
-    <h1>Welcome to Our Page!</h1>
-    <p>Click the button below to access details.json:</p>
-    <button class="button" onclick="redirectToDetailsJson()">Access details.json</button>
+  <body>
+      <h1>Welcome to Our Page!</h1>
+      <p>Click the button below to access details.json:</p>
+      <button class="button" onclick="redirectToDetailsJson()">Access details.json</button>
+      <p>Click the button below to view cronjob.log:</p>
+      <button class="button" onclick="redirectToCronjobLog()">View cronjob.log</button>
+      <div id="log-content"></div>
+      <script>
+          // Your existing JavaScript functions
+          function redirectToDetailsJson() {
+              window.location.href = 'https://reapi.netlify.app/details.json';
+          }
+          function redirectToCronjobLog() {
+              // Your existing fetch function
+          }
 
-    <p>Click the button below to view cronjob.log:</p>
-    <button class="button" onclick="redirectToCronjobLog()">View cronjob.log</button>
-    <div id="log-content"></div>
-
-    <script>
-        function redirectToDetailsJson() {
-            window.location.href = 'https://reapi.netlify.app/details.json';
-        }
-
-        function redirectToCronjobLog() {
-            fetch('/.netlify/functions/fetch-cron-log')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('log-content').innerText = data;
-            })
-            .catch(error => {
-                console.error('Error fetching log content:', error);
-            });
-        }
-    </script>
-</body>
+          // Insert the new script here
+          document.addEventListener('DOMContentLoaded', (event) => {
+              const lastRun = localStorage.getItem('lastCronRun');
+              const now = Date.now();
+              const oneDay = 24 * 60 * 60 * 1000; // Milliseconds in a day
+              if (!lastRun || now - lastRun > oneDay) {
+                  // It's been more than 24 hours since the last run, or it's never been run
+                  localStorage.setItem('lastCronRun', now);
+                  // Trigger the Netlify function
+                  fetch('/.netlify/functions/fetch-cron-log').then(response => response.text()).then(data => {
+                      console.log('Cron task executed', data);
+                      // Optionally update some element or log to the console
+                  }).catch(console.error);
+              }
+          });
+      </script>
+  </body>
 </html>
