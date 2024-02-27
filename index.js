@@ -226,13 +226,35 @@ async function main() {
     }
   }
 
-  // Filter out objects with the key "Kaufpreis"
   allDetails = allDetails.filter((detail) => !("Kaufpreis" in detail));
 
-  console.log("Collected Details:", allDetails);
-  // Here you can save or process the collected details
-  // For example, save to a JSON file
+  // Save to JSON
   saveToJson(allDetails, "details.json");
+
+  // Convert JSON Array to CSV string
+  const jsonToCSV = (jsonData) => {
+    if (!jsonData.length) {
+      return '';
+    }
+
+    const headers = Object.keys(jsonData[0]).join(',') + '\n';
+    const rows = jsonData.map(row => {
+      return Object.values(row).map(value => 
+        typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value
+      ).join(',');
+    }).join('\n');
+
+    return headers + rows;
+  };
+
+  // Convert details to CSV
+  const detailsCSV = jsonToCSV(allDetails);
+
+  // Save CSV data to file
+  fs.writeFile('details.csv', detailsCSV, (err) => {
+    if (err) throw err;
+    console.log('CSV file has been saved.');
+  });
 }
 
 main();

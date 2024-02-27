@@ -10,6 +10,7 @@ exports.handler = async function(event, context) {
     const logFilePath = path.join(__dirname, '..', 'cronjob.log');  // Assuming cronjob.log is at the root of your project
     try {
         const data = fs.readFileSync(logFilePath, 'utf8');
+        console.log('Cron log content fetched successfully.'); // Logging when the cron log is successfully fetched
         return { statusCode: 200, body: data };
     } catch (err) {
         console.error('Error reading log file:', err);
