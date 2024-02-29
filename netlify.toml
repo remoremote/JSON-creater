@@ -1,2 +1,7 @@
 [build]
   functions = "functions"
+
+[[functions.schedule]]
+  function = "scrape-and-save"
+  schedule = "0 3 * * *"
+  timezone = "Europe/Berlin"  # Correctly sets up a scheduled function

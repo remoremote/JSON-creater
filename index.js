@@ -6,6 +6,13 @@ const turndownService = new TurndownService();
 const mySecret = process.env["googleAPIKey"]; // Make sure to have this variable in your environment
 const baseUrl = "https://casaframe.ch";
 const overviewPath = "/de/publisher/S1eULf6tOHWAIeKpRsca2ozbdZJuhj3A/";
+
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
 const maxPageNumber = 1; // Set this to your required value
 async function fetchHTML(url) {
   console.log(`Fetching HTML for URL: ${url}`);
@@ -22,7 +29,6 @@ async function scrapePage(link) {
   const $ = await fetchHTML(link);
   if (!$) return null;
 
-  
   const details = {};
 
   // Scrape address details
@@ -229,21 +235,38 @@ async function main() {
 
   allDetails = allDetails.filter((detail) => !("Kaufpreis" in detail));
 
+
   // Save to JSON
-  saveToJson(allDetails, "details.json");
+  async function saveToJson(data, filename) {
+    // Example: Saving JSON data into a 'details' table with a 'data' column
+    const query = 'INSERT INTO details(data) VALUES($1) RETURNING *';
+    const values = [JSON.stringify(data)]; // Assuming 'data' needs to be stringified
+    try {
+      const res = await pool.query(query, values);
+      console.log('Data saved:', res.rows[0]);
+    } catch (err) {
+      console.error('Error saving to database:', err.stack);
+    }
+  }
 
   // Convert JSON Array to CSV string
   const jsonToCSV = (jsonData) => {
     if (!jsonData.length) {
-      return '';
+      return "";
     }
 
-    const headers = Object.keys(jsonData[0]).join(',') + '\n';
-    const rows = jsonData.map(row => {
-      return Object.values(row).map(value => 
-        typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value
-      ).join(',');
-    }).join('\n');
+    const headers = Object.keys(jsonData[0]).join(",") + "\n";
+    const rows = jsonData
+      .map((row) => {
+        return Object.values(row)
+          .map((value) =>
+            typeof value === "string"
+              ? `"${value.replace(/"/g, '""')}"`
+              : value,
+          )
+          .join(",");
+      })
+      .join("\n");
 
     return headers + rows;
   };
@@ -252,11 +275,22 @@ async function main() {
   const detailsCSV = jsonToCSV(allDetails);
 
   // Save CSV data to file
-  fs.writeFile('details.csv', detailsCSV, (err) => {
+  fs.writeFile("details.csv", detailsCSV, (err) => {
     if (err) throw err;
-    console.log('CSV file has been saved.');
+    console.log("CSV file has been saved.");
   });
   console.log("Main function completed.");
 }
 
 main();
+
+// Amend the bottom of index.js
+exports.handler = async () => {
+  try {
+    await main();
+    console.log("Scraping process completed successfully.");
+    // Any post-processing or cloud storage logic goes here
+  } catch (error) {
+    console.error("Scraping process failed:", error);
+  }
+};
