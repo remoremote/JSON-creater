@@ -7,13 +7,13 @@ const mySecret = process.env["googleAPIKey"]; // Make sure to have this variable
 const baseUrl = "https://casaframe.ch";
 const overviewPath = "/de/publisher/S1eULf6tOHWAIeKpRsca2ozbdZJuhj3A/";
 
-const { Pool } = require('pg');
+const { Pool } = require("pg");
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-const maxPageNumber = 1; // Set this to your required value
+const maxPageNumber = 8; // Set this to your required value
 async function fetchHTML(url) {
   console.log(`Fetching HTML for URL: ${url}`);
   try {
@@ -132,7 +132,7 @@ async function getAddressFromGoogleMaps(addressLink) {
     if (latLngMatch && latLngMatch.length === 3) {
       const latitude = latLngMatch[1];
       const longitude = latLngMatch[2];
-      const reverseGeocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${mySecret}`;
+      const reverseGeocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyDlnZqM9x22u-w_DA9i43E9VzY6Alziyr4`;
       const reverseGeocodeResponse = await axios.get(reverseGeocodeUrl);
       console.log("Reverse Geocoding Response:", reverseGeocodeResponse.data); // Log the response
       const { results } = reverseGeocodeResponse.data;
@@ -185,12 +185,27 @@ async function scrapeOverviewPage(pageNumber) {
   return links;
 }
 
-async function saveToJson(data, filename) {
+async function saveToJsonAndDatabase(data, filename) {
+  // Save to JSON file
   try {
     fs.writeFileSync(filename, JSON.stringify(data, null, 2));
     console.log(`Data saved to ${filename}`);
   } catch (error) {
     console.error("Error saving data to JSON file:", error);
+  }
+
+  // Save to PostgreSQL database
+  for (let i = 0; i < data.length; i++) {
+    let columns = Object.keys(data[i]).join(',');
+    let values = Object.values(data[i]).map(val => `'${val}'`).join(',');
+    const queryText = `INSERT INTO details(${columns},id) VALUES(${values},${i + 1}) RETURNING *`;
+
+    try {
+      const res = await pool.query(queryText);
+      console.log('Data saved to database:', res.rows[0]);
+    } catch (err) {
+      console.error('Error saving to database:', err.stack);
+    }
   }
 }
 
@@ -235,50 +250,9 @@ async function main() {
 
   allDetails = allDetails.filter((detail) => !("Kaufpreis" in detail));
 
+  // Save to JSON and PostgreSQL database
+  await saveToJsonAndDatabase(allDetails, "details.json");
 
-  // Save to JSON
-  async function saveToJson(data, filename) {
-    // Example: Saving JSON data into a 'details' table with a 'data' column
-    const query = 'INSERT INTO details(data) VALUES($1) RETURNING *';
-    const values = [JSON.stringify(data)]; // Assuming 'data' needs to be stringified
-    try {
-      const res = await pool.query(query, values);
-      console.log('Data saved:', res.rows[0]);
-    } catch (err) {
-      console.error('Error saving to database:', err.stack);
-    }
-  }
-
-  // Convert JSON Array to CSV string
-  const jsonToCSV = (jsonData) => {
-    if (!jsonData.length) {
-      return "";
-    }
-
-    const headers = Object.keys(jsonData[0]).join(",") + "\n";
-    const rows = jsonData
-      .map((row) => {
-        return Object.values(row)
-          .map((value) =>
-            typeof value === "string"
-              ? `"${value.replace(/"/g, '""')}"`
-              : value,
-          )
-          .join(",");
-      })
-      .join("\n");
-
-    return headers + rows;
-  };
-
-  // Convert details to CSV
-  const detailsCSV = jsonToCSV(allDetails);
-
-  // Save CSV data to file
-  fs.writeFile("details.csv", detailsCSV, (err) => {
-    if (err) throw err;
-    console.log("CSV file has been saved.");
-  });
   console.log("Main function completed.");
 }
 
